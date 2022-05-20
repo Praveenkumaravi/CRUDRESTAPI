@@ -1,0 +1,198 @@
+package com.praveen.createbaserepo.entity;
+
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+
+@Entity
+public class Product {
+	@Id
+	@GeneratedValue
+	private int sku_id;
+	private String sku_name;
+	private String sku_description;
+	private int sku_price;
+	public int getSku_id() {
+		return sku_id;
+	}
+	public void setSku_id(int sku_id) {
+		this.sku_id = sku_id;
+	}
+	public String getSku_name() {
+		return sku_name;
+	}
+	public void setSku_name(String sku_name) {
+		this.sku_name = sku_name;
+	}
+	public String getSku_description() {
+		return sku_description;
+	}
+	public void setSku_description(String sku_description) {
+		this.sku_description = sku_description;
+	}
+	public int getSku_price() {
+		return sku_price;
+	}
+	public void setSku_price(int sku_price) {
+		this.sku_price = sku_price;
+	}
+	
+
+
+
+}
+
+
+package com.praveen.createbaserepo.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.praveen.createbaserepo.entity.Product;
+
+public interface ProductRepository extends JpaRepository<Product, Integer> {
+
+}
+
+
+package com.praveen.createbaserepo.service;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.praveen.createbaserepo.entity.Product;
+import com.praveen.createbaserepo.repository.ProductRepository;
+
+@Service
+public class ProductService {
+	@Autowired
+	private ProductRepository productrepository;
+
+	public Product createProduct(Product product) {
+		return productrepository.save(product);
+	}
+
+	public Product getProductById(int sku_id) {
+		return productrepository.findById(sku_id).get();
+	}
+	public List<Product> getAllProducts() {
+		return productrepository.findAll();
+	}
+	public Product updateProduct(Product product) {
+		return productrepository.save(product);
+	}
+
+	public void deleteProduct(int sku_id) {
+		productrepository.deleteById(sku_id);
+	}
+
+}
+
+
+package com.praveen.createbaserepo.controller;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.praveen.createbaserepo.entity.Product;
+import com.praveen.createbaserepo.service.ProductService;
+
+@RestController
+public class ProductController {
+	@Autowired
+	public ProductService productservice;
+
+	@PostMapping("/addProduct")
+	public Product addproduct(@RequestBody Product product) {
+		return productservice.createProduct(product);
+	}
+
+	@GetMapping("/singleproduct/{id}")
+	public Product getById(@PathVariable int sku_id) {
+		return productservice.getProductById(sku_id);
+	}
+	@GetMapping("/products")
+	public List<Product> getProducts(){
+		return productservice.getAllProducts();
+	}
+
+	@PutMapping("/updateProduct")
+	public Product updateProduct(@RequestBody Product product) {
+		return productservice.updateProduct(product);
+	}
+
+	@DeleteMapping("/deleteproduct/{id}")
+	public void deleteProduct(@PathVariable int sku_id) {
+		productservice.deleteProduct(sku_id);
+
+	}
+}
+
+
+server.port=9090
+spring.datasource.url=jdbc:h2:mem:mydb
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=mydb
+spring.datasource.password=
+spring.h2.console.enabled=true
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+
+
+package com.praveen.createbaserepo;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.web.client.RestTemplate;
+
+import com.praveen.createbaserepo.entity.Product;
+
+@SpringBootTest
+class CreateBaseRepoApplicationTests {
+
+	@Test
+	public void testgetProduct() {
+		RestTemplate resttemplate=new RestTemplate();
+		Product product=resttemplate.getForObject("http://localhost:9090/singleproduct/1", Product.class);
+		assertNotNull(product);
+		assertEquals("Samsung",product.getSku_name());
+	}
+	@Test
+	public void testcreateProduct() {
+		RestTemplate resttemplate=new RestTemplate();
+		Product product=new Product();
+		product.setSku_id(2);
+		product.setSku_name("I phone");
+		product.setSku_description("Looks excellent");
+		product.setSku_price(100000);
+		Product newproduct=resttemplate.postForObject("http://localhost:9090/addProduct", product, Product.class);
+		assertNotNull(newproduct);
+        assertEquals("Looks excellent",newproduct.getSku_description());
+		}
+	@Test
+	public void testupdateProduct() {
+		RestTemplate resttemplate=new RestTemplate();
+		Product product=resttemplate.getForObject("http://localhost:9090/singleproduct/1", Product.class);
+        product.setSku_price(40000);
+        resttemplate.put("http://localhost:9090/updateProduct", product);
+	}
+	@Test
+	public void testdeleteProduct() {
+		RestTemplate resttemplate=new RestTemplate();
+		Product product=resttemplate.getForObject("http://localhost:9090/singleproduct/1", Product.class);
+		resttemplate.delete("http://localhost:9090/deleteproduct/1",product);
+			
+		
+	}
+
+}
