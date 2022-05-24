@@ -111,13 +111,13 @@ public class ProductController {
 	@Autowired
 	public ProductService productservice;
 
-	@PostMapping("/addProduct")
+	@PostMapping("/addproduct")
 	public Product addproduct(@RequestBody Product product) {
 		return productservice.createProduct(product);
 	}
 
-	@GetMapping("/singleproduct/{id}")
-	public Product getById(@PathVariable int sku_id) {
+	@GetMapping("/product/{sku_id}")
+	public Product getById(@PathVariable("sku_id") int sku_id) {
 		return productservice.getProductById(sku_id);
 	}
 	@GetMapping("/products")
@@ -125,13 +125,13 @@ public class ProductController {
 		return productservice.getAllProducts();
 	}
 
-	@PutMapping("/updateProduct")
+	@PutMapping("/updateproduct")
 	public Product updateProduct(@RequestBody Product product) {
 		return productservice.updateProduct(product);
 	}
 
-	@DeleteMapping("/deleteproduct/{id}")
-	public void deleteProduct(@PathVariable int sku_id) {
+	@DeleteMapping("/deleteproduct/{sku_id}")
+	public void deleteProduct(@PathVariable("sku_id") int sku_id) {
 		productservice.deleteProduct(sku_id);
 
 	}
